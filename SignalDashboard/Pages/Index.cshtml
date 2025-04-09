@@ -1,0 +1,73 @@
+﻿@page
+@model SignalDashboard.Pages.IndexModel
+
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- 자동 새로고침 메타태그 -->
+    <meta http-equiv="refresh" content="5">
+    <title>Equipment Signal Monitoring</title>
+</head>
+<body>
+    <!-- 검색 필터 입력창 -->
+    <input type="text" id="filterInput" placeholder="Asset or LineCode 검색" onkeyup="filterTable()" style="margin-bottom: 10px;" />
+    <!-- 테이블 시작 -->
+    <table id="signalTable" border="1" cellpadding="10">
+        <thead>
+            <tr>
+                <th>Type</th>
+                <th>LineCode</th>
+                <th>Asset</th>                
+                <th>Red</th>
+                <th>Yellow</th>
+                <th>Green</th>
+                <th>Spare</th>
+                <th>Remarks1</th>
+                <th>Remarks2</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var s in Model.Signals)
+            {
+                <tr>
+                    <td>@s.Type</td>
+                    <td>@s.LineCode</td>
+                    <td>@s.Asset</td>                    
+                    <td style="background:@(s.SignalRed == 1 ? "red" : "lightgray"); color:white;">@(s.SignalRed == 1 ? "ON" : "OFF")</td>
+                    <td style="background:@(s.SignalYellow == 1 ? "gold" : "lightgray"); color:black;">@(s.SignalYellow == 1 ? "ON" : "OFF")</td>
+                    <td style="background:@(s.SignalGreen == 1 ? "green" : "lightgray"); color:white;">@(s.SignalGreen == 1 ? "ON" : "OFF")</td>
+                    <td style="background:@(s.SignalSpare == 1 ? "spare" : "lightgray"); color:white;">@(s.SignalSpare == 1 ? "ON" : "OFF")</td>
+                    <td>@s.Remarks1</td>
+                    <td>@s.Remarks2</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <!-- 정렬 라이브러리 + 필터 함수 JS -->
+    <script src="https://unpkg.com/tablesort@5.2.1/dist/tablesort.min.js"></script>
+    <script>
+        new Tablesort(document.getElementById('signalTable'));
+
+        function filterTable() 
+        {
+            var input = document.getElementById("filterInput");
+            var filter = input.value.toLowerCase();
+            var table = document.getElementById("signalTable");
+            var rows = table.getElementsByTagName("tr");
+            for (var i = 1; i < rows.length; i++) 
+            {
+                var line = rows[i].cells[1]?.innerText.toLowerCase();
+                var asset = rows[i].cells[2]?.innerText.toLowerCase();                
+                if (line.includes(filter) || asset.includes(filter))
+                {
+                    rows[i].style.display = "";
+                } 
+                else 
+                {
+                    rows[i].style.display = "none";
+                }
+            }
+        }
+    </script>
+</body>
+</html> 
