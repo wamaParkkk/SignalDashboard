@@ -81,10 +81,10 @@
 }
 
 @functions {
-    string GetSignalText(int value) => value == 0 ? "On" : "Off";
+    string GetSignalText(int value) => value == 1 ? "On" : "Off";
     string GetSignalClass(int value, string signalType)
     {
-        if (value != 0) return ""; // Off일 땐 기본
+        if (value != 1) return ""; // Off일 땐 기본
         return signalType switch
         {
             "red" => "red-blink",
