@@ -1,73 +1,97 @@
 ﻿@page
+
 @model SignalDashboard.Pages.IndexModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
 
-<!DOCTYPE html>
-<html>
-<head>
-    <!-- 자동 새로고침 메타태그 -->
-    <meta http-equiv="refresh" content="5">
-    <title>Equipment Signal Monitoring</title>
-</head>
-<body>
-    <!-- 검색 필터 입력창 -->
-    <input type="text" id="filterInput" placeholder="Asset or LineCode 검색" onkeyup="filterTable()" style="margin-bottom: 10px;" />
-    <!-- 테이블 시작 -->
-    <table id="signalTable" border="1" cellpadding="10">
-        <thead>
-            <tr>
-                <th>Type</th>
-                <th>LineCode</th>
-                <th>Asset</th>                
-                <th>Red</th>
-                <th>Yellow</th>
-                <th>Green</th>
-                <th>Spare</th>
-                <th>Remarks1</th>
-                <th>Remarks2</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var s in Model.Signals)
-            {
-                <tr>
-                    <td>@s.Type</td>
-                    <td>@s.LineCode</td>
-                    <td>@s.Asset</td>                    
-                    <td style="background:@(s.SignalRed == 1 ? "red" : "lightgray"); color:white;">@(s.SignalRed == 1 ? "ON" : "OFF")</td>
-                    <td style="background:@(s.SignalYellow == 1 ? "gold" : "lightgray"); color:black;">@(s.SignalYellow == 1 ? "ON" : "OFF")</td>
-                    <td style="background:@(s.SignalGreen == 1 ? "green" : "lightgray"); color:white;">@(s.SignalGreen == 1 ? "ON" : "OFF")</td>
-                    <td style="background:@(s.SignalSpare == 1 ? "spare" : "lightgray"); color:white;">@(s.SignalSpare == 1 ? "ON" : "OFF")</td>
-                    <td>@s.Remarks1</td>
-                    <td>@s.Remarks2</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-    <!-- 정렬 라이브러리 + 필터 함수 JS -->
-    <script src="https://unpkg.com/tablesort@5.2.1/dist/tablesort.min.js"></script>
-    <script>
-        new Tablesort(document.getElementById('signalTable'));
-
-        function filterTable() 
+<h2>Equipment Signal Dashboard</h2>
+<!-- 검색 영역 -->
+<div>
+    <label>Type: <input type="text" id="filterType" oninput="applyFilters()" /></label>
+    <label>LineCode: <input type="text" id="filterLineCode" oninput="applyFilters()" /></label>
+    <label>Asset: <input type="text" id="filterAsset" oninput="applyFilters()" /></label>
+</div>
+<!-- 데이터 테이블 -->
+<table class="table" id="signalTable">
+    <thead>
+        <tr>
+            <th>Type</th>
+            <th>LineCode</th>
+            <th>Asset</th>
+            <th>SignalRed</th>
+            <th>SignalYellow</th>
+            <th>SignalGreen</th>
+            <th>SignalSpare</th>
+            <th>Remarks1</th>
+            <th>Remarks2</th>
+            <th>UpdatedAt</th>
+        </tr>
+    </thead>
+    <tbody id="tableBody">
+        @foreach (var item in Model.SignalList)
         {
-            var input = document.getElementById("filterInput");
-            var filter = input.value.toLowerCase();
-            var table = document.getElementById("signalTable");
-            var rows = table.getElementsByTagName("tr");
-            for (var i = 1; i < rows.length; i++) 
-            {
-                var line = rows[i].cells[1]?.innerText.toLowerCase();
-                var asset = rows[i].cells[2]?.innerText.toLowerCase();                
-                if (line.includes(filter) || asset.includes(filter))
-                {
-                    rows[i].style.display = "";
-                } 
-                else 
-                {
-                    rows[i].style.display = "none";
-                }
-            }
+            <tr>
+                <td>@item.Type</td>
+                <td>@item.LineCode</td>
+                <td>@item.Asset</td>
+                <td class="@GetSignalClass(item.SignalRed, "red")">@GetSignalText(item.SignalRed)</td>
+                <td class="@GetSignalClass(item.SignalYellow, "yellow")">@GetSignalText(item.SignalYellow)</td>
+                <td class="@GetSignalClass(item.SignalGreen, "green")">@GetSignalText(item.SignalGreen)</td>
+                <td class="@GetSignalClass(item.SignalSpare, "spare")">@GetSignalText(item.SignalSpare)</td>
+                <td>@item.Remarks1</td>
+                <td>@item.Remarks2</td>
+                <td>@item.UpdatedAt</td>
+            </tr>
         }
+    </tbody>
+</table>
+
+@section Scripts {
+    <script>
+        // 필터 적용
+        function applyFilters() {
+            const type = document.getElementById("filterType").value.toLowerCase();
+            const lineCode = document.getElementById("filterLineCode").value.toLowerCase();
+            const asset = document.getElementById("filterAsset").value.toLowerCase();
+            const rows = document.querySelectorAll("#signalTable tbody tr");
+            rows.forEach(row => {
+                const [colType, colLine, colAsset] = row.querySelectorAll("td");
+                const match =
+                    colType.textContent.toLowerCase().includes(type) &&
+                    colLine.textContent.toLowerCase().includes(lineCode) &&
+                    colAsset.textContent.toLowerCase().includes(asset);
+                row.style.display = match ? "" : "none";
+            });
+        }
+
+        // 자동 새로고침
+        setInterval(() => {
+            fetch("@Url.Page("Index")")
+                .then(res => res.text())
+                .then(html => {
+                    const temp = document.createElement("div");
+                    temp.innerHTML = html;
+                    const newBody = temp.querySelector("#tableBody").innerHTML;
+                    document.getElementById("tableBody").innerHTML = newBody;
+                    applyFilters(); // 필터 유지
+                });
+        }, 5000);   // 5초마다 갱신
     </script>
-</body>
-</html> 
+}
+
+@functions {
+    string GetSignalText(int value) => value == 0 ? "On" : "Off";
+    string GetSignalClass(int value, string signalType)
+    {
+        if (value != 0) return ""; // Off일 땐 기본
+        return signalType switch
+        {
+            "red" => "red-blink",
+            "yellow" => "yellow-bg",
+            "green" => "green-blink",
+            "spare" => "silver-bg",
+            _ => ""
+        };
+    }
+}

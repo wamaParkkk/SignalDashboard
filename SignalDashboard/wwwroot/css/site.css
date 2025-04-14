@@ -20,3 +20,34 @@ html {
 body {
   margin-bottom: 60px;
 }
+
+@keyframes blinker {
+    50% {
+        opacity: 0;
+    }
+}
+
+.red-blink {
+    background-color: red !important;
+    color: yellow !important;
+    animation: blinker 1s linear infinite !important;
+    font-weight: bold !important;
+}
+
+.yellow-bg {
+    background-color: yellow !important;
+    color: black !important;
+    font-weight: bold !important;
+}
+
+.green-blink {
+    background-color: lime !important;
+    color: black !important;    
+    font-weight: bold !important;
+}
+
+.silver-bg {
+    background-color: silver !important;
+    color: black !important;
+    font-weight: bold !important;
+}

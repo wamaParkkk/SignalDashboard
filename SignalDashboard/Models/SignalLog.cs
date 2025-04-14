@@ -11,6 +11,6 @@
         public int SignalSpare { get; set; }
         public string Remarks1 { get; set; }
         public string Remarks2 { get; set; }
-
+        public DateTime UpdatedAt { get; set; }
     }
 }

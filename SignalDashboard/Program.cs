@@ -1,24 +1,30 @@
-var builder = WebApplication.CreateBuilder(args);
+﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
-// Add services to the container.
+var builder = WebApplication.CreateBuilder(args);
+// Razor Pages 서비스 등록 필수
 builder.Services.AddRazorPages();
+
+// 고정 포트 5000으로 Listen (외부 접속 가능)
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(5000);
+});
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
+// 서버 실행(exe) 시 자동 브라우저 열기 (서버 PC에서만)
+System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
 {
-    app.UseExceptionHandler("/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
-}
+    FileName = "http://localhost:5000",
+    UseShellExecute = true
+});
 
-app.UseHttpsRedirection();
+// 미들웨어 구성
 app.UseStaticFiles();
 
 app.UseRouting();
-
-app.UseAuthorization();
 
 app.MapRazorPages();
 
